@@ -165,15 +165,17 @@ String timeToString() {
   struct tm *ptm = gmtime ((time_t *)&epochTime); 
 
   int monthDay = ptm->tm_mday; // tanggal
+  String dayNumber = monthDay < 10 ? "0" + String(monthDay) : String(monthDay);
 
   int currentMonth = ptm->tm_mon+1; // bulan
-  String currentMonthName = months[currentMonth-1];
+  String monthNumber = currentMonth < 10 ? "0" + String(currentMonth) : String(currentMonth);
 
   int currentYear = ptm->tm_year+1900; // tahun
 
   String currentDay = weekDays[timeClient.getDay()]; // hari
 
-  String date = String(monthDay) + "-" + currentMonthName + "-" + String(currentYear) + " " + timeClient.getFormattedTime();
+  // String date = String(monthDay) + "-" + currentMonthName + "-" + String(currentYear) + " " + timeClient.getFormattedTime();
+  String date = String(currentYear) + "-" + monthNumber + "-" + dayNumber + " " + timeClient.getFormattedTime();
 
   return date;
 }

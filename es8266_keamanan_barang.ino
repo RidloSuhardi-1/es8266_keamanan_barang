@@ -1,3 +1,11 @@
+/*
+  Status sensor
+  - initial (memulai perangkat)
+  - object-in-range (objek dalam jangkauan sensor jika berada di jarak yang sudah ditentukan)
+  - object-detected (objek terdeteksi sensor)
+  - object-away (objek diluar jangkauan sensor)
+*/
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <NTPClient.h>
@@ -9,7 +17,7 @@
 
 /* Wi-Fi */
 
-#define WIFI_SSID "WIFI-SSID" // ubahen
+#define WIFI_SSID "WIFI-SSID"         // ubahen
 #define WIFI_PASSWORD "WIFI-PASSWORD" // ubahen
 
 /* Waktu */
@@ -44,9 +52,9 @@ unsigned long sendDataPrevMillis = 0;
 
 Servo servo;
 
-unsigned int servoMinDegree = 90; // sudut minimal servo menutup
+unsigned int servoMinDegree = 90;  // sudut minimal servo menutup
 unsigned int servoMaxDegree = 180; // sudut maksimal servo membuka
-unsigned int servoPauseTime = 0; // waktu jeda servo dalam milidetik.
+unsigned int servoPauseTime = 0;   // waktu jeda servo dalam milidetik.
 
 long duration;
 float distanceInCM = 0;
@@ -62,11 +70,13 @@ bool objectIsFound = false;
 bool ledIsEnabled = false;
 bool servoIsEnabled = true;
 
-void initWiFi() {
+void initWiFi()
+{
   Serial.println("Menghubungkan ke Wi-Fi");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  
-  while (WiFi.status() != WL_CONNECTED) {
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
     Serial.print(".");
     delay(1000);
   }
@@ -75,11 +85,12 @@ void initWiFi() {
   Serial.println("Terhubung ke jaringan\n");
   Serial.println("Alamat IP: " + WiFi.localIP().toString());
   Serial.println("Alamat MAC: " + WiFi.macAddress());
-  Serial.println("Kekuatan sinyal: " +String(WiFi.RSSI()) + " dBm");
+  Serial.println("Kekuatan sinyal: " + String(WiFi.RSSI()) + " dBm");
   Serial.println();
 }
 
-void initFirebase() {
+void initFirebase()
+{
   config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
   config.token_status_callback = tokenStatusCallback; // see addons/TokenHelper.h
@@ -93,7 +104,8 @@ void initFirebase() {
   Firebase.begin(&config, &auth); // inisialisasi library firebase
 }
 
-void initialize() {
+void initialize()
+{
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(LED_PIN, OUTPUT);
@@ -102,7 +114,8 @@ void initialize() {
   servo.write(servoMinDegree);
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
 
   initWiFi();
@@ -113,23 +126,26 @@ void setup() {
   timeClient.setTimeOffset(25200);
 }
 
-void loop() {
+void loop()
+{
   timeClient.update();
 
-  if (Firebase.ready() && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)) {
+  if (Firebase.ready() && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0))
+  {
     sendDataPrevMillis = millis();
     checkVariableUpdates(); // perbarui nilai yang tersimpan saat ini dengan yg ada di database
   }
 
   // cek sensor
-  
+
   String status = "initial";
   String message = "";
   bool updateCurrentLed = false;
 
   readDistance();
 
-  if (distanceInCM <= nearestDistance) {
+  if (distanceInCM <= nearestDistance)
+  {
     status = "object-detected";
     message = "Paket sedang memasuki gudang";
     objectIsFound = true;
@@ -138,10 +154,14 @@ void loop() {
     updateCurrentLed = true;
 
     digitalWrite(LED_PIN, LOW);
-    if (servoIsEnabled) servo.write(servoMaxDegree);
-    if (servoPauseTime > 0) delay(servoPauseTime);
+    if (servoIsEnabled)
+      servo.write(servoMaxDegree);
+    if (servoPauseTime > 0)
+      delay(servoPauseTime);
     printMessage(message);
-  } else if (distanceInCM > nearestDistance && distanceInCM <= (nearestDistance*2)) {
+  }
+  else if (distanceInCM > nearestDistance && distanceInCM <= (nearestDistance * 2))
+  {
     status = "object-in-range";
     message = "Terdeteksi objek dalam jarak " + String(distanceInCM) + " cm" + ", atau " + String(distanceInInch) + " inch";
     objectIsFound = true;
@@ -149,10 +169,14 @@ void loop() {
     ledIsEnabled = false;
 
     digitalWrite(LED_PIN, HIGH);
-    if (servoIsEnabled) servo.write(servoMaxDegree);
+    if (servoIsEnabled)
+      servo.write(servoMaxDegree);
     printMessage(message);
-  } else {
-    if (objectIsFound) {
+  }
+  else
+  {
+    if (objectIsFound)
+    {
       status = "object-away";
       message = "Objek telah menjauh dari jangkauan";
 
@@ -165,21 +189,25 @@ void loop() {
     updateCurrentLed = true;
 
     digitalWrite(LED_PIN, HIGH);
-    if (servoIsEnabled) servo.write(servoMinDegree);
+    if (servoIsEnabled)
+      servo.write(servoMinDegree);
   }
 
   // simpan data yang diterima
 
   updateDistance();
-  if (!status.isEmpty() && !message.isEmpty()) updateHistory(status, message);    
-  if (updateCurrentLed) updateLED();
+  if (!status.isEmpty() && !message.isEmpty())
+    updateHistory(status, message);
+  if (updateCurrentLed)
+    updateLED();
 
   delay(1000);
 }
 
 /* Fungsi utama */
 
-void readDistance() {
+void readDistance()
+{
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
 
@@ -190,29 +218,31 @@ void readDistance() {
 
   duration = pulseIn(ECHO_PIN, HIGH);
 
-  distanceInCM = duration * SOUND_VELOCITY/2;
+  distanceInCM = duration * SOUND_VELOCITY / 2;
   distanceInInch = distanceInCM * CM_TO_INCH;
 }
 
-void printMessage(String newMessage) {
+void printMessage(String newMessage)
+{
   String time = getFormattedTime();
-  
+
   Serial.println(time);
   Serial.println("pesan: " + newMessage + "\n");
 }
 
-String getFormattedTime() {
+String getFormattedTime()
+{
   time_t epochTime = timeClient.getEpochTime();
 
-  struct tm *ptm = gmtime ((time_t *)&epochTime); 
+  struct tm *ptm = gmtime((time_t *)&epochTime);
 
   int monthDay = ptm->tm_mday;
   String dayNumber = monthDay < 10 ? "0" + String(monthDay) : String(monthDay);
 
-  int currentMonth = ptm->tm_mon+1;
+  int currentMonth = ptm->tm_mon + 1;
   String monthNumber = currentMonth < 10 ? "0" + String(currentMonth) : String(currentMonth);
 
-  int currentYear = ptm->tm_year+1900;
+  int currentYear = ptm->tm_year + 1900;
 
   String dateFormat = String(currentYear) + "-" + monthNumber + "-" + dayNumber + " " + timeClient.getFormattedTime();
 
@@ -221,32 +251,44 @@ String getFormattedTime() {
 
 /* Fungsi pendukung */
 
-void updateLED() {
+void updateLED()
+{
   String time = getFormattedTime(); // dapatkan tanggal dan waktu sekarang
 
-  if (!Firebase.RTDB.setString(&fbdo, "led_status/date", time)) printMessage(fbdo.errorReason().c_str());
-  if (!Firebase.RTDB.setBool(&fbdo, "led_status/status", ledIsEnabled)) printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setString(&fbdo, "led_status/date", time))
+    printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setBool(&fbdo, "led_status/status", ledIsEnabled))
+    printMessage(fbdo.errorReason().c_str());
 }
 
-void updateDistance() {
+void updateDistance()
+{
   String time = getFormattedTime(); // dapatkan tanggal dan waktu sekarang
 
-  if (!Firebase.RTDB.setFloat(&fbdo, "distance/cm", distanceInCM)) printMessage(fbdo.errorReason().c_str());
-  if (!Firebase.RTDB.setFloat(&fbdo, "distance/inch", distanceInInch)) printMessage(fbdo.errorReason().c_str());
-  if (!Firebase.RTDB.setFloat(&fbdo, "distance/detection_distance", (nearestDistance*2))) printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setFloat(&fbdo, "distance/cm", distanceInCM))
+    printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setFloat(&fbdo, "distance/inch", distanceInInch))
+    printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setFloat(&fbdo, "distance/detection_distance", (nearestDistance * 2)))
+    printMessage(fbdo.errorReason().c_str());
 }
 
-void updateHistory(String status, String message) {
-  String time = getFormattedTime(); // dapatkan tanggal dan waktu sekarang
+void updateHistory(String status, String message)
+{
+  String time = getFormattedTime();                      // dapatkan tanggal dan waktu sekarang
   String getDate = time.substring(0, time.indexOf(' ')); // pecah bagian tanggal dari spasi (format: 16-May-2023 14:01:00)
   String getTime = timeClient.getFormattedTime();
 
-  if (!Firebase.RTDB.setString(&fbdo, "/system_notification/" + getDate + "/" + getTime + "/" + "status", status)) printMessage(fbdo.errorReason().c_str());
-  if (!Firebase.RTDB.setString(&fbdo, "/system_notification/" + getDate + "/" + getTime + "/" + "message", message)) printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setString(&fbdo, "/system_notification/" + getDate + "/" + getTime + "/" + "status", status))
+    printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setString(&fbdo, "/system_notification/" + getDate + "/" + getTime + "/" + "message", message))
+    printMessage(fbdo.errorReason().c_str());
 }
 
-void checkVariableUpdates() {
-  if (Firebase.RTDB.getString(&fbdo, "/configuration")) {
+void checkVariableUpdates()
+{
+  if (Firebase.RTDB.getString(&fbdo, "/configuration"))
+  {
     printMessage("Updating variables.");
     servoMaxDegree = Firebase.RTDB.getInt(&fbdo, "/configuration/servo_max_degree") ? fbdo.to<int>() : servoMaxDegree;
     servoMinDegree = Firebase.RTDB.getInt(&fbdo, "/configuration/servo_min_degree") ? fbdo.to<int>() : servoMinDegree;
@@ -256,20 +298,28 @@ void checkVariableUpdates() {
 
     servoIsEnabled = Firebase.RTDB.getBool(&fbdo, "/configuration/servo_enabled") ? fbdo.to<bool>() : servoIsEnabled;
 
-    if (freshStart) {
+    if (freshStart)
+    {
       updateLED();
       updateHistory("initial", "Perangkat berhasil disiapkan.");
       printMessage("Perangkat berhasil disiapkan.");
     }
-  } else {
+  }
+  else
+  {
     printMessage("Setting up variables.");
-    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_max_degree", servoMaxDegree)) printMessage(fbdo.errorReason().c_str());
-    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_min_degree", servoMinDegree)) printMessage(fbdo.errorReason().c_str());
-    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_pause_time", servoPauseTime)) printMessage(fbdo.errorReason().c_str());
+    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_max_degree", servoMaxDegree))
+      printMessage(fbdo.errorReason().c_str());
+    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_min_degree", servoMinDegree))
+      printMessage(fbdo.errorReason().c_str());
+    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_pause_time", servoPauseTime))
+      printMessage(fbdo.errorReason().c_str());
 
-    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/nearest_distance_sensor", nearestDistance)) printMessage(fbdo.errorReason().c_str());
+    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/nearest_distance_sensor", nearestDistance))
+      printMessage(fbdo.errorReason().c_str());
 
-    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_enabled", servoIsEnabled)) printMessage(fbdo.errorReason().c_str());
+    if (!Firebase.RTDB.setInt(&fbdo, "/configuration/servo_enabled", servoIsEnabled))
+      printMessage(fbdo.errorReason().c_str());
 
     updateLED();
     updateHistory("initial", "Perangkat berhasil disiapkan.");

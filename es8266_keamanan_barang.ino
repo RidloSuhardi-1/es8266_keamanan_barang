@@ -4,7 +4,6 @@
   - object-in-range (objek dalam jangkauan sensor jika berada di jarak yang sudah ditentukan)
   - object-detected (objek terdeteksi sensor)
   - object-away (objek diluar jangkauan sensor)
-  - synchronizing-settings (menyinkronkan pengaturan dengan database)
 */
 
 #include <Arduino.h>
@@ -298,8 +297,6 @@ void checkVariableUpdates()
     nearestDistance = Firebase.RTDB.getInt(&fbdo, "/configuration/nearest_distance_sensor") ? fbdo.to<int>() : nearestDistance;
 
     servoIsEnabled = Firebase.RTDB.getBool(&fbdo, "/configuration/servo_enabled") ? fbdo.to<bool>() : servoIsEnabled;
-
-    updateHistory("synchronizing-settings", "Menyinkronkan pengaturan");
 
     if (freshStart)
     {

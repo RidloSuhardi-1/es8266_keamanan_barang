@@ -9,8 +9,8 @@
 
 /* Wi-Fi */
 
-#define WIFI_SSID "SengganiAtas" // ubahen
-#define WIFI_PASSWORD "Bismillah" // ubahen
+#define WIFI_SSID "WIFI-SSID" // ubahen
+#define WIFI_PASSWORD "WIFI-PASSWORD" // ubahen
 
 /* Waktu */
 
@@ -19,9 +19,9 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 /* Firebase */
 
-#define API_KEY "AIzaSyCSLBFbS1xg3o5CbvS8eaUEiFJjJ_oxJVE" // firebase web api key // ubahen
+#define API_KEY "" // firebase web api key // ubahen
 
-#define DATABASE_URL "iot-keamanan-barang-default-rtdb.asia-southeast1.firebasedatabase.app" // firebase realtime database url [..firebase.com/..firebasedatabase.app] // ubahen
+#define DATABASE_URL "" // firebase realtime database url [..firebase.com/..firebasedatabase.app] // ubahen
 
 FirebaseData fbdo;
 

@@ -265,11 +265,12 @@ void updateDistance()
 {
   String time = getFormattedTime(); // dapatkan tanggal dan waktu sekarang
 
-  if (!Firebase.RTDB.setFloat(&fbdo, "distance/cm", distanceInCM))
+  if (!Firebase.RTDB.setFloat(&fbdo, "/distance/cm", distanceInCM))
     printMessage(fbdo.errorReason().c_str());
-  if (!Firebase.RTDB.setFloat(&fbdo, "distance/inch", distanceInInch))
+  if (!Firebase.RTDB.setFloat(&fbdo, "/distance/inch", distanceInInch))
     printMessage(fbdo.errorReason().c_str());
-  if (!Firebase.RTDB.setFloat(&fbdo, "distance/detection_distance", (nearestDistance * 2)))
+    
+  if (!Firebase.RTDB.setFloat(&fbdo, "/configuration/farthest_distance_sensor", (nearestDistance * 2)))
     printMessage(fbdo.errorReason().c_str());
 }
 

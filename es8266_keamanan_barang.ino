@@ -68,6 +68,8 @@ bool freshStart = true;
 bool objectIsFound = false;
 
 bool ledIsEnabled = false;
+bool servoStatusIsEnabled = false;
+
 bool servoIsEnabled = true;
 
 void initWiFi()
@@ -151,13 +153,20 @@ void loop()
     objectIsFound = true;
 
     ledIsEnabled = true;
+    servoStatusIsEnabled = true;
     updateCurrentLed = true;
 
     digitalWrite(LED_PIN, LOW);
     if (servoIsEnabled)
+    {
       servo.write(servoMaxDegree);
+    }
+
     if (servoPauseTime > 0)
+    {
       delay(servoPauseTime);
+    }
+
     printMessage(message);
   }
   else if (distanceInCM > nearestDistance && distanceInCM <= (nearestDistance * 2))
@@ -167,10 +176,15 @@ void loop()
     objectIsFound = true;
 
     ledIsEnabled = false;
+    servoStatusIsEnabled = true;
+    updateCurrentLed = false;
 
     digitalWrite(LED_PIN, HIGH);
     if (servoIsEnabled)
+    {
       servo.write(servoMaxDegree);
+    }
+
     printMessage(message);
   }
   else
@@ -186,20 +200,28 @@ void loop()
     objectIsFound = false;
 
     ledIsEnabled = false;
+    servoStatusIsEnabled = false;
     updateCurrentLed = true;
 
     digitalWrite(LED_PIN, HIGH);
     if (servoIsEnabled)
+    {
       servo.write(servoMinDegree);
+    }
   }
 
   // simpan data yang diterima
 
+  updateServo();
   updateDistance();
   if (!status.isEmpty() && !message.isEmpty())
+  {
     updateHistory(status, message);
+  }
   if (updateCurrentLed)
+  {
     updateLED();
+  }
 
   delay(1000);
 }
@@ -259,6 +281,18 @@ void updateLED()
     printMessage(fbdo.errorReason().c_str());
   if (!Firebase.RTDB.setBool(&fbdo, "led_status/status", ledIsEnabled))
     printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setBool(&fbdo, "led_status/status", ledIsEnabled))
+    printMessage(fbdo.errorReason().c_str());
+}
+
+void updateServo()
+{
+  String time = getFormattedTime(); // dapatkan tanggal dan waktu sekarang
+
+  if (!Firebase.RTDB.setString(&fbdo, "servo_status/date", time))
+    printMessage(fbdo.errorReason().c_str());
+  if (!Firebase.RTDB.setBool(&fbdo, "servo_status/status", servoStatusIsEnabled))
+    printMessage(fbdo.errorReason().c_str());
 }
 
 void updateDistance()
@@ -269,7 +303,7 @@ void updateDistance()
     printMessage(fbdo.errorReason().c_str());
   if (!Firebase.RTDB.setFloat(&fbdo, "/distance/inch", distanceInInch))
     printMessage(fbdo.errorReason().c_str());
-    
+
   if (!Firebase.RTDB.setFloat(&fbdo, "/configuration/farthest_distance_sensor", (nearestDistance * 2)))
     printMessage(fbdo.errorReason().c_str());
 }

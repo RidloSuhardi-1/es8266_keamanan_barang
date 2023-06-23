@@ -41,7 +41,9 @@ The application can be downloaded [here](https://drive.google.com/drive/folders/
 
 ## Demonstration
 
-Here is a [video demonstration](https://drive.google.com/file/d/1lTBTteJKyi-9-B32qyXHckIX0P64_SH4/view?usp=sharing) of the use of the device.
+[Here](https://wokwi.com/projects/364293199375388673 "Keamanan Barang") is a demonstration using the Wokwi simulator. Note that in this simulator, the value is still static due to avoid the compile process being too long.
+
+[Here](https://drive.google.com/file/d/1lTBTteJKyi-9-B32qyXHckIX0P64_SH4/view?usp=sharing) is a video demonstration of the use of the device.
 
 ## The Library Used In This Project
 

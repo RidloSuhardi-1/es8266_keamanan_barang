@@ -19,6 +19,8 @@ At this time the problems that occur in the box car driven by The Courier must o
 
 <img src="./images/prototype.jpg" alt="SecureVault Prototype" width=500 />
 
+<img src="./images/esp8266_1.jpg" alt="ESP Prototype 1" width=250 /> <img src="./images/esp8266_2.jpg" alt="ESP Prototype 2" width=250 />
+
 Attached tools
 
 - ESP8266
